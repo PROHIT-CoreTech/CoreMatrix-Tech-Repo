@@ -13,6 +13,7 @@
   --mono:'JetBrains Mono',monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+::selection{background:rgba(63,197,212,.25);color:var(--ink)}
 html{scroll-behavior:smooth}
 body{
   background:var(--bg);
@@ -93,7 +94,7 @@ h2.sec-title{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.5
 /* about */
 .about-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:54px;align-items:start}
 .about-text p{color:var(--muted);font-size:16.5px;margin-bottom:18px}
-.about-text strong{color:var(--ink);font-weight:600}
+strong{color:var(--ink);font-weight:600}
 .stat-card{border:1px solid var(--line);border-radius:18px;padding:26px;background:rgba(11,15,28,.5);backdrop-filter:blur(8px);margin-bottom:16px;transition:.4s;position:relative;overflow:hidden}
 .stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--cyan),var(--violet));transform:scaleY(0);transform-origin:top;transition:.5s}
 .stat-card:hover{transform:translateX(6px);border-color:var(--line)}
