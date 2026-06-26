@@ -204,3 +204,10 @@ footer .mono{font-family:var(--mono)}
 .home-cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
 .center-cta{text-align:center;margin-top:50px}
 @media(max-width:860px){.svc-preview{grid-template-columns:1fr}}
+
+@media(min-width: 861px) {
+  .svc-grid > .svc-card:nth-child(5),
+  .svc-preview > .svc-mini:nth-child(5) {
+    grid-column: span 2;
+  }
+}
