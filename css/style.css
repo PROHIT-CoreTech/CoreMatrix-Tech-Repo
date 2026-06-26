@@ -68,7 +68,7 @@ h1.hero .grad{background:linear-gradient(120deg,var(--cyan),var(--violet) 55%,va
   color:var(--ink);background:rgba(124,92,255,.05);transition:.3s}
 .role-chip:hover{transform:translateY(-3px);border-color:var(--violet);box-shadow:0 8px 22px rgba(124,92,255,.25)}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
-.btn{padding:14px 26px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;transition:.3s;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:none}
+.btn{padding:14px 26px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;transition:.3s;display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none}
 .btn-primary{background:linear-gradient(120deg,var(--cyan),var(--violet));color:#04060d}
 .btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(124,92,255,.4)}
 .btn-ghost{border:1px solid var(--line);color:var(--ink);background:transparent}
@@ -79,7 +79,7 @@ h1.hero .grad{background:linear-gradient(120deg,var(--cyan),var(--violet) 55%,va
 @keyframes scrolldot{0%{opacity:1;top:7px}100%{opacity:0;top:18px}}
 
 /* sections */
-section.s{padding:60px 0;position:relative}
+section.s{padding:120px 0;position:relative}
 .sec-head{margin-bottom:60px}
 .sec-num{font-family:var(--mono);font-size:13px;color:var(--violet);letter-spacing:3px;margin-bottom:14px;display:block}
 h2.sec-title{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.5vw,48px);letter-spacing:-1px;line-height:1.1}
@@ -184,7 +184,7 @@ footer .mono{font-family:var(--mono)}
   .navlinks.open{right:0}
   .burger{display:flex;z-index:60}
   .about-grid,.svc-grid,.skill-cluster,.proj-grid{grid-template-columns:1fr}
-  section.s{padding:40px 0}
+  section.s{padding:80px 0}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 
