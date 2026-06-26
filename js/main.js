@@ -92,3 +92,19 @@ document.querySelectorAll('.svc-card').forEach(card=>{
   });
   card.addEventListener('mouseleave',()=>{card.style.transform='';});
 });
+
+/* ---------- mailto fallback copy ---------- */
+document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
+  link.addEventListener('click', () => {
+    const email = link.getAttribute('href').replace('mailto:', '');
+    navigator.clipboard.writeText(email).then(() => {
+      const originalText = link.innerHTML;
+      link.innerHTML = '✓ Copied to Clipboard!';
+      link.style.borderColor = 'var(--cyan)';
+      setTimeout(() => {
+        link.innerHTML = originalText;
+        link.style.borderColor = '';
+      }, 2000);
+    }).catch(() => {});
+  });
+});
