@@ -71,8 +71,10 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const cio=new IntersectionObserver((es)=>{es.forEach(e=>{
   if(!e.isIntersecting)return;
   const el=e.target;
-  if(el.dataset.count){const tgt=+el.dataset.count;let n=0;const step=Math.max(1,Math.ceil(tgt/40));
-    const t=setInterval(()=>{n+=step;if(n>=tgt){n=tgt;clearInterval(t)}el.textContent=n;},28);}
+  if(el.dataset.count){
+    const suffix = el.dataset.suffix || '';
+    const tgt=+el.dataset.count;let n=0;const step=Math.max(1,Math.ceil(tgt/40));
+    const t=setInterval(()=>{n+=step;if(n>=tgt){n=tgt;clearInterval(t)}el.textContent=n + suffix;},28);}
   cio.unobserve(el);
 })},{threshold:.6});
 document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
