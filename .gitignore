@@ -1,0 +1,6 @@
+# Local config files (containing API keys)
+js/config.js
+.env
+
+# OS files
+.DS_Store

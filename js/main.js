@@ -112,3 +112,100 @@ document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
     window.location.href = href;
   });
 });
+
+/* ---------- contact enquiry form handler ---------- */
+const form = document.getElementById('enquiry-form');
+const successDiv = document.getElementById('form-success');
+const errorDiv = document.getElementById('form-error');
+const submitBtn = document.getElementById('submit-btn');
+const chipsContainer = document.getElementById('services-chips');
+const selectedServicesInput = document.getElementById('selected-services');
+
+// Load config variables if defined
+if (typeof CONFIG !== 'undefined') {
+  const keyInput = document.querySelector('input[name="access_key"]');
+  if (keyInput) {
+    keyInput.value = CONFIG.WEB3FORMS_ACCESS_KEY || '';
+  }
+}
+
+if (chipsContainer && selectedServicesInput) {
+  const chips = chipsContainer.querySelectorAll('.service-chip');
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+      chipsContainer.classList.remove('invalid-shake'); // Clear validation error styling
+      
+      const activeValues = Array.from(chips)
+        .filter(c => c.classList.contains('active'))
+        .map(c => c.dataset.value);
+        
+      selectedServicesInput.value = activeValues.join(', ');
+    });
+  });
+}
+
+if (form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Validate that at least one service chip is selected
+    if (selectedServicesInput && !selectedServicesInput.value) {
+      if (chipsContainer) {
+        chipsContainer.classList.remove('invalid-shake');
+        void chipsContainer.offsetWidth; // Trigger reflow to restart CSS animation
+        chipsContainer.classList.add('invalid-shake');
+      }
+      return;
+    }
+    
+    // Hide previous error if any
+    if (errorDiv) errorDiv.style.display = 'none';
+    
+    // Loading state
+    if (submitBtn) {
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      const btnText = submitBtn.querySelector('span:first-child');
+      if (btnText) btnText.textContent = 'Sending...';
+    }
+    
+    const formData = new FormData(form);
+    
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error('Form submission failed');
+    })
+    .then(data => {
+      // Success! Fade out form and show success status
+      form.style.opacity = '0';
+      form.style.transform = 'translateY(-10px)';
+      setTimeout(() => {
+        form.style.display = 'none';
+        if (successDiv) successDiv.style.display = 'flex';
+      }, 350);
+    })
+    .catch(error => {
+      console.error('Error submitting form:', error);
+      // Reset button state
+      if (submitBtn) {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        const btnText = submitBtn.querySelector('span:first-child');
+        if (btnText) btnText.textContent = 'Send Message';
+      }
+      
+      // Show error status
+      if (errorDiv) errorDiv.style.display = 'flex';
+    });
+  });
+}
