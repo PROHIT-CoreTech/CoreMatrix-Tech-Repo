@@ -186,13 +186,17 @@ if (form) {
       throw new Error('Form submission failed');
     })
     .then(data => {
-      // Success! Fade out form and show success status
-      form.style.opacity = '0';
-      form.style.transform = 'translateY(-10px)';
-      setTimeout(() => {
-        form.style.display = 'none';
-        if (successDiv) successDiv.style.display = 'flex';
-      }, 350);
+      if (data.success) {
+        // Success! Fade out form and show success status
+        form.style.opacity = '0';
+        form.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+          form.style.display = 'none';
+          if (successDiv) successDiv.style.display = 'flex';
+        }, 350);
+      } else {
+        throw new Error(data.message || 'Form submission rejected');
+      }
     })
     .catch(error => {
       console.error('Error submitting form:', error);
