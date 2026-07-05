@@ -20,9 +20,14 @@
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
 <div id="glow"></div>
 <nav id="nav">
-  <a href="index.html" class="logo"><img src="images/hero.png" alt="PROHIT CoreTech" class="logo-img"><span class="logo-txt">PROHIT CoreTech</span></a>
+  <a href="index.html" class="logo">
+    <img src="images/logo.png" alt="PROHIT CoreTech" class="logo-img-h">
+  </a>
   <div class="navlinks" id="navlinks">
     <a href="index.html">Home</a>
     <a href="about.html" style="color:var(--ink)">About</a>
@@ -67,10 +72,11 @@
 
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 32px;">
       <!-- Pratik's Profile Card -->
-      <div class="svc-card reveal" style="padding: 30px; border: 1px solid var(--line); border-radius: 18px; background: rgba(11,15,28,.5); display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="svc-card reveal">
+        <div class="gl"></div>
         <div>
           <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-            <div style="width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(120deg, var(--cyan), var(--violet)); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 18px; font-weight: 700; color: #fff;">PS</div>
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--glow-grad); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 18px; font-weight: 700; color: #040814;">PS</div>
             <div>
               <h3 style="font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--ink); margin: 0;">Pratik Sathe</h3>
               <div style="font-family: var(--mono); font-size: 12.5px; color: var(--cyan); margin-top: 2px;">Co-Founder & Data Analytics Consultant</div>
@@ -87,10 +93,11 @@
       </div>
 
       <!-- Priyanka's Profile Card -->
-      <div class="svc-card reveal" style="padding: 30px; border: 1px solid var(--line); border-radius: 18px; background: rgba(11,15,28,.5); display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="svc-card reveal">
+        <div class="gl"></div>
         <div>
           <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
-            <div style="width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(120deg, var(--cyan), var(--violet)); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 18px; font-weight: 700; color: #fff;">PRB</div>
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: var(--glow-grad); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 18px; font-weight: 700; color: #040814;">PRB</div>
             <div>
               <h3 style="font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--ink); margin: 0;">Priyanka Rohit Barge</h3>
               <div style="font-family: var(--mono); font-size: 12.5px; color: var(--cyan); margin-top: 2px;">Co-Founder & Strategic Technology Lead</div>
@@ -108,10 +115,13 @@
     </div>
 
     <!-- Detailed Bio Priyanka -->
-    <div class="reveal" style="margin-top: 32px; padding: 30px; border: 1px solid var(--line); border-radius: 18px; background: rgba(11,15,28,.3);">
-      <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-bottom: 16px;"><strong>Priyanka Rohit Barge</strong> co-founded PROHIT CoreTech as a strategic leader who bridges the gap between deep technical execution and commercial business intelligence. With over 10 years of hands-on experience in software engineering and mobile ecosystem development, she has mastered the art of building high-performance, scalable systems spanning <strong>iOS Native, Flutter, React Native, NestJS and Next.js</strong>.</p>
-      <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-bottom: 16px;">Priyanka recently graduated with a <strong>Master of Business Administration (MBA)</strong> specialising in <strong>AI for Business</strong> from <strong>O.P. Jindal Global University</strong>. With this unique intersection of technical mastery and predictive analytics training, she looks at modern technology through a sharp commercial lens.</p>
-      <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin: 0;">At PROHIT CoreTech, she specialises in turning complex technological capabilities — especially <strong>Generative AI and Machine Learning models</strong> — into viable, scalable business products that drive revenue, cut operational waste, and solve real-world problems.</p>
+    <div class="bento-card reveal" style="margin-top: 32px;">
+      <div class="spotlight"></div>
+      <div style="z-index: 5; position: relative;">
+        <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-bottom: 16px;"><strong>Priyanka Rohit Barge</strong> co-founded PROHIT CoreTech as a strategic leader who bridges the gap between deep technical execution and commercial business intelligence. With over 10 years of hands-on experience in software engineering and mobile ecosystem development, she has mastered the art of building high-performance, scalable systems spanning <strong>iOS Native, Flutter, React Native, NestJS and Next.js</strong>.</p>
+        <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-bottom: 16px;">Priyanka recently graduated with a <strong>Master of Business Administration (MBA)</strong> specialising in <strong>AI for Business</strong> from <strong>O.P. Jindal Global University</strong>. With this unique intersection of technical mastery and predictive analytics training, she looks at modern technology through a sharp commercial lens.</p>
+        <p style="color: var(--muted); font-size: 14.5px; line-height: 1.7; margin: 0;">At PROHIT CoreTech, she specialises in turning complex technological capabilities — especially <strong>Generative AI and Machine Learning models</strong> — into viable, scalable business products that drive revenue, cut operational waste, and solve real-world problems.</p>
+      </div>
     </div>
   </div>
 </section>

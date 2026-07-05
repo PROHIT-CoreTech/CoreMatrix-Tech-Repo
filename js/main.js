@@ -1,99 +1,367 @@
-/* ---------- 3D background---------- */
-const canvas=document.getElementById('bg-canvas');
-let renderer,scene,camera,particles,knot,mouseX=0,mouseY=0;
-function init3D(){
-  scene=new THREE.Scene();
-  scene.fog=new THREE.FogExp2(0x050a12,0.07);
-  camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,100);
-  camera.position.z=6;
-  renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setSize(innerWidth,innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+/* ---------- 3D background with morphing organic sphere & connection particles ---------- */
+const canvas = document.getElementById('bg-canvas');
+let renderer, scene, camera, particles, morphMesh, mouseX = 0, mouseY = 0;
+const particleCount = 1000;
+let particlePositions, particleVelocities;
 
-  // particle field
-  const cnt=1400, g=new THREE.BufferGeometry(), pos=new Float32Array(cnt*3), col=new Float32Array(cnt*3);
-  const c1=new THREE.Color(0x3fc5d4), c2=new THREE.Color(0x1e6f86);
-  for(let i=0;i<cnt;i++){
-    pos[i*3]=(Math.random()-.5)*22; pos[i*3+1]=(Math.random()-.5)*22; pos[i*3+2]=(Math.random()-.5)*18;
-    const c=c1.clone().lerp(c2,Math.random());
-    col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+function init3D() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x040814, 0.08); // matches --bg
+  
+  camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 5;
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Organic Morphing 3D Mesh
+  const morphGeometry = new THREE.IcosahedronGeometry(1.5, 4);
+  // Store original positions for math wiggles
+  const originalPositions = morphGeometry.attributes.position.clone();
+  morphGeometry.userData = { originalPositions };
+
+  const morphMaterial = new THREE.MeshBasicMaterial({
+    color: 0x6366f1, // matches var(--line-active) / violet
+    wireframe: true,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending
+  });
+  morphMesh = new THREE.Mesh(morphGeometry, morphMaterial);
+  morphMesh.position.set(2.2, 0.2, -1);
+  scene.add(morphMesh);
+
+  // Floating particles
+  const particleGeometry = new THREE.BufferGeometry();
+  particlePositions = new Float32Array(particleCount * 3);
+  particleVelocities = new Float32Array(particleCount * 3);
+  const particleColors = new Float32Array(particleCount * 3);
+  
+  const color1 = new THREE.Color(0x3fd5e6); // cyan
+  const color2 = new THREE.Color(0x8b5cf6); // violet
+
+  for (let i = 0; i < particleCount; i++) {
+    particlePositions[i * 3] = (Math.random() - 0.5) * 15;
+    particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 15;
+    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+
+    particleVelocities[i * 3] = (Math.random() - 0.5) * 0.005;
+    particleVelocities[i * 3 + 1] = (Math.random() - 0.5) * 0.005;
+    particleVelocities[i * 3 + 2] = (Math.random() - 0.5) * 0.005;
+
+    const mixedColor = color1.clone().lerp(color2, Math.random());
+    particleColors[i * 3] = mixedColor.r;
+    particleColors[i * 3 + 1] = mixedColor.g;
+    particleColors[i * 3 + 2] = mixedColor.b;
   }
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  g.setAttribute('color',new THREE.BufferAttribute(col,3));
-  particles=new THREE.Points(g,new THREE.PointsMaterial({size:0.045,vertexColors:true,transparent:true,opacity:.85,blending:THREE.AdditiveBlending}));
+
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+  particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+  const particleMaterial = new THREE.PointsMaterial({
+    size: 0.045,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending
+  });
+
+  particles = new THREE.Points(particleGeometry, particleMaterial);
   scene.add(particles);
-
-  // floating wireframe knot — the "signature" 3D object
-  const kg=new THREE.TorusKnotGeometry(1.4,.42,140,18,2,3);
-  knot=new THREE.Mesh(kg,new THREE.MeshBasicMaterial({color:0x1e6f86,wireframe:true,transparent:true,opacity:.3}));
-  knot.position.set(3.2,0,-2);
-  scene.add(knot);
-
-  const kg2=new THREE.IcosahedronGeometry(1.1,1);
-  const ico=new THREE.Mesh(kg2,new THREE.MeshBasicMaterial({color:0x3fc5d4,wireframe:true,transparent:true,opacity:.24}));
-  ico.position.set(-3.6,1.4,-3);
-  scene.add(ico);
-  window._ico=ico;
 
   animate();
 }
-function animate(){
+
+function animate() {
   requestAnimationFrame(animate);
-  const t=Date.now()*0.0002;
-  particles.rotation.y=t*1.4; particles.rotation.x=t*.6;
-  knot.rotation.x+=.004; knot.rotation.y+=.006;
-  window._ico.rotation.x-=.003; window._ico.rotation.y+=.004;
-  camera.position.x+=(mouseX*.6-camera.position.x)*.04;
-  camera.position.y+=(-mouseY*.6-camera.position.y)*.04;
+  
+  const time = Date.now() * 0.0006;
+
+  // Slowly rotate structures
+  if (particles) {
+    particles.rotation.y = time * 0.15;
+    particles.rotation.x = time * 0.08;
+    
+    // Slow drift of particle positions
+    const pos = particles.geometry.attributes.position.array;
+    for (let i = 0; i < particleCount; i++) {
+      pos[i * 3] += particleVelocities[i * 3];
+      pos[i * 3 + 1] += particleVelocities[i * 3 + 1];
+      pos[i * 3 + 2] += particleVelocities[i * 3 + 2];
+
+      // Re-boundary limits
+      if (Math.abs(pos[i * 3]) > 7.5) particleVelocities[i * 3] *= -1;
+      if (Math.abs(pos[i * 3 + 1]) > 7.5) particleVelocities[i * 3 + 1] *= -1;
+      if (Math.abs(pos[i * 3 + 2]) > 5) particleVelocities[i * 3 + 2] *= -1;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Morph organic mesh using sine displacement over time
+  if (morphMesh) {
+    morphMesh.rotation.y = time * 0.25;
+    morphMesh.rotation.x = time * 0.15;
+    
+    const geom = morphMesh.geometry;
+    const posAttr = geom.attributes.position;
+    const orig = geom.userData.originalPositions;
+    
+    for (let i = 0; i < posAttr.count; i++) {
+      const ox = orig.getX(i);
+      const oy = orig.getY(i);
+      const oz = orig.getZ(i);
+      
+      // Calculate coordinates-based offset
+      const angle = Math.atan2(oy, ox);
+      const wave = Math.sin(angle * 4 + time * 3.5) * Math.cos(oz * 3 + time * 2) * 0.16;
+      
+      // Add dynamic noise distortion
+      const multiplier = 1 + wave;
+      posAttr.setXYZ(i, ox * multiplier, oy * multiplier, oz * multiplier);
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  // Responsive camera mouse tracking
+  camera.position.x += (mouseX * 0.8 - camera.position.x) * 0.05;
+  camera.position.y += (-mouseY * 0.8 - camera.position.y) * 0.05;
   camera.lookAt(scene.position);
-  renderer.render(scene,camera);
+
+  renderer.render(scene, camera);
 }
-addEventListener('mousemove',e=>{mouseX=(e.clientX/innerWidth-.5)*2;mouseY=(e.clientY/innerHeight-.5)*2;});
-addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-try{init3D();}catch(e){console.warn('3D off',e);canvas.style.display='none';}
 
-/* ---------- cursor glow ---------- */
-const glow=document.getElementById('glow');
-addEventListener('mousemove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px';});
-
-/* ---------- nav ---------- */
-const nav=document.getElementById('nav');
-addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40));
-const burger=document.getElementById('burger'),navlinks=document.getElementById('navlinks');
-burger.addEventListener('click',()=>navlinks.classList.toggle('open'));
-navlinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navlinks.classList.remove('open')));
-
-/* ---------- scroll reveal ---------- */
-const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-/* ---------- count + bars ---------- */
-const cio=new IntersectionObserver((es)=>{es.forEach(e=>{
-  if(!e.isIntersecting)return;
-  const el=e.target;
-  if(el.dataset.count){
-    const suffix = el.dataset.suffix || '';
-    const tgt=+el.dataset.count;let n=0;const step=Math.max(1,Math.ceil(tgt/40));
-    const t=setInterval(()=>{n+=step;if(n>=tgt){n=tgt;clearInterval(t)}el.textContent=n + suffix;},28);}
-  cio.unobserve(el);
-})},{threshold:.6});
-document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
-
-const bio=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.w+'%';bio.unobserve(e.target);}})},{threshold:.5});
-document.querySelectorAll('.bar i').forEach(el=>bio.observe(el));
-
-/* ---------- 3D tilt on service cards ---------- */
-document.querySelectorAll('.svc-card').forEach(card=>{
-  card.addEventListener('mousemove',e=>{
-    const r=card.getBoundingClientRect();
-    const x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
-    card.style.transform=`perspective(900px) rotateY(${(x-.5)*12}deg) rotateX(${(.5-y)*12}deg) translateY(-4px)`;
-    card.style.setProperty('--mx',(x*100)+'%');card.style.setProperty('--my',(y*100)+'%');
-  });
-  card.addEventListener('mouseleave',()=>{card.style.transform='';});
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
 });
 
-/* ---------- mailto fallback copy ---------- */
+window.addEventListener('resize', () => {
+  if (!camera) return;
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Init 3D with catch safeguard
+try {
+  init3D();
+} catch (e) {
+  console.warn('3D initialization failed, falling back to static CSS glows.', e);
+  canvas.style.display = 'none';
+}
+
+/* ---------- Spotlight mouse tracking for premium cards ---------- */
+document.querySelectorAll('.bento-card, .svc-card, .svc-mini, .proj, .stat-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty('--mx', `${x}px`);
+    card.style.setProperty('--my', `${y}px`);
+  });
+});
+
+/* ---------- Nav Scroll Active State ---------- */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* ---------- Burger menu ---------- */
+const burger = document.getElementById('burger');
+const navlinks = document.getElementById('navlinks');
+if (burger && navlinks) {
+  burger.addEventListener('click', () => {
+    navlinks.classList.toggle('open');
+  });
+  navlinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navlinks.classList.remove('open');
+    });
+  });
+}
+
+/* ---------- Intersection Scroll Reveal ---------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ---------- Numbers Incrementer ---------- */
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const targetVal = +el.dataset.count;
+    const suffix = el.dataset.suffix || '';
+    let currentVal = 0;
+    const step = Math.max(1, Math.ceil(targetVal / 35));
+    
+    const interval = setInterval(() => {
+      currentVal += step;
+      if (currentVal >= targetVal) {
+        currentVal = targetVal;
+        clearInterval(interval);
+      }
+      el.textContent = currentVal + suffix;
+    }, 30);
+    
+    countObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
+
+/* ---------- Skill Bars observer ---------- */
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const fillBar = entry.target;
+      fillBar.style.width = fillBar.dataset.w + '%';
+      barObserver.unobserve(fillBar);
+    }
+  });
+}, { threshold: 0.4 });
+
+document.querySelectorAll('.bar i').forEach(el => barObserver.observe(el));
+
+/* ---------- Card 3D tilt interaction (Services cards) ---------- */
+document.querySelectorAll('.svc-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    // apply 3d transforms
+    card.style.transform = `perspective(1000px) rotateY(${(x - 0.5) * 14}deg) rotateX(${(0.5 - y) * 14}deg) translateY(-6px)`;
+    card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+    card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+});
+
+/* ---------- Testimonials Carousel Drag-to-Scroll ---------- */
+const slider = document.querySelector('.tst-grid');
+const sliderContainer = document.querySelector('.tst-slider-container');
+if (slider && sliderContainer) {
+  let isDown = false;
+  let startX;
+  let currentTranslate = 0;
+  let prevTranslate = 0;
+
+  sliderContainer.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slider.style.transition = 'none';
+    startX = e.pageX;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isDown) return;
+    isDown = false;
+    slider.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+    
+    // Bounds check to bounce back
+    const containerWidth = sliderContainer.offsetWidth;
+    const sliderWidth = slider.scrollWidth;
+    const maxTranslate = 0;
+    const minTranslate = -(sliderWidth - containerWidth + 24); // Account for gap
+
+    if (currentTranslate > maxTranslate) {
+      currentTranslate = maxTranslate;
+    } else if (currentTranslate < minTranslate) {
+      currentTranslate = sliderWidth > containerWidth ? minTranslate : maxTranslate;
+    }
+    
+    slider.style.transform = `translateX(${currentTranslate}px)`;
+    prevTranslate = currentTranslate;
+  });
+
+  sliderContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = (x - startX) * 1.4;
+    currentTranslate = prevTranslate + walk;
+    slider.style.transform = `translateX(${currentTranslate}px)`;
+  });
+
+  // Touch Support for mobile
+  sliderContainer.addEventListener('touchstart', (e) => {
+    isDown = true;
+    slider.style.transition = 'none';
+    startX = e.touches[0].pageX;
+  });
+
+  window.addEventListener('touchend', () => {
+    if (!isDown) return;
+    isDown = false;
+    slider.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+    
+    const containerWidth = sliderContainer.offsetWidth;
+    const sliderWidth = slider.scrollWidth;
+    const maxTranslate = 0;
+    const minTranslate = -(sliderWidth - containerWidth + 24);
+
+    if (currentTranslate > maxTranslate) {
+      currentTranslate = maxTranslate;
+    } else if (currentTranslate < minTranslate) {
+      currentTranslate = sliderWidth > containerWidth ? minTranslate : maxTranslate;
+    }
+    
+    slider.style.transform = `translateX(${currentTranslate}px)`;
+    prevTranslate = currentTranslate;
+  });
+
+  sliderContainer.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const x = e.touches[0].pageX;
+    const walk = (x - startX) * 1.2;
+    currentTranslate = prevTranslate + walk;
+    slider.style.transform = `translateX(${currentTranslate}px)`;
+  });
+}
+
+/* ---------- Portfolio category filter logic ---------- */
+const filterTabs = document.querySelectorAll('.filter-tab');
+const projects = document.querySelectorAll('.proj-grid .proj');
+if (filterTabs.length > 0 && projects.length > 0) {
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const cat = tab.dataset.filter;
+      
+      projects.forEach(proj => {
+        const projCat = proj.dataset.category || '';
+        const isMatched = (cat === 'all' || projCat.split(' ').includes(cat));
+        
+        if (isMatched) {
+          proj.style.display = 'block';
+          // trigger redraw to register transition
+          void proj.offsetWidth;
+          proj.style.opacity = '1';
+          proj.style.transform = 'scale(1)';
+        } else {
+          proj.style.opacity = '0';
+          proj.style.transform = 'scale(0.94)';
+          setTimeout(() => {
+            proj.style.display = 'none';
+          }, 400);
+        }
+      });
+    });
+  });
+}
+
+/* ---------- Mailto fallback dynamic copy ---------- */
 document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -102,7 +370,7 @@ document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
     navigator.clipboard.writeText(email).catch(() => {});
     
     const originalText = link.innerHTML;
-    link.innerHTML = '✓ Copied to Clipboard!';
+    link.innerHTML = '✓ Copied Email!';
     link.style.borderColor = 'var(--cyan)';
     setTimeout(() => {
       link.innerHTML = originalText;
@@ -113,7 +381,7 @@ document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
   });
 });
 
-/* ---------- contact enquiry form handler ---------- */
+/* ---------- Contact Enquiry form Web3Forms integration ---------- */
 const form = document.getElementById('enquiry-form');
 const successDiv = document.getElementById('form-success');
 const errorDiv = document.getElementById('form-error');
@@ -121,7 +389,6 @@ const submitBtn = document.getElementById('submit-btn');
 const chipsContainer = document.getElementById('services-chips');
 const selectedServicesInput = document.getElementById('selected-services');
 
-// Load config variables if defined
 if (typeof CONFIG !== 'undefined') {
   const keyInput = document.querySelector('input[name="access_key"]');
   if (keyInput) {
@@ -134,7 +401,7 @@ if (chipsContainer && selectedServicesInput) {
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
       chip.classList.toggle('active');
-      chipsContainer.classList.remove('invalid-shake'); // Clear validation error styling
+      chipsContainer.classList.remove('invalid-shake');
       
       const activeValues = Array.from(chips)
         .filter(c => c.classList.contains('active'))
@@ -149,25 +416,22 @@ if (form) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    // Validate that at least one service chip is selected
     if (selectedServicesInput && !selectedServicesInput.value) {
       if (chipsContainer) {
         chipsContainer.classList.remove('invalid-shake');
-        void chipsContainer.offsetWidth; // Trigger reflow to restart CSS animation
+        void chipsContainer.offsetWidth;
         chipsContainer.classList.add('invalid-shake');
       }
       return;
     }
     
-    // Hide previous error if any
     if (errorDiv) errorDiv.style.display = 'none';
     
-    // Loading state
     if (submitBtn) {
       submitBtn.classList.add('loading');
       submitBtn.disabled = true;
       const btnText = submitBtn.querySelector('span:first-child');
-      if (btnText) btnText.textContent = 'Sending...';
+      if (btnText) btnText.textContent = 'Sending Message...';
     }
     
     const formData = new FormData(form);
@@ -180,14 +444,11 @@ if (form) {
       }
     })
     .then(response => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('Form submission failed');
+      if (response.ok) return response.json();
+      throw new Error('Server submission error');
     })
     .then(data => {
       if (data.success) {
-        // Success! Fade out form and show success status
         form.style.opacity = '0';
         form.style.transform = 'translateY(-10px)';
         setTimeout(() => {
@@ -195,21 +456,44 @@ if (form) {
           if (successDiv) successDiv.style.display = 'flex';
         }, 350);
       } else {
-        throw new Error(data.message || 'Form submission rejected');
+        throw new Error(data.message || 'Submission rejected');
       }
     })
     .catch(error => {
-      console.error('Error submitting form:', error);
-      // Reset button state
+      console.error('Enquiry Error:', error);
       if (submitBtn) {
         submitBtn.classList.remove('loading');
         submitBtn.disabled = false;
         const btnText = submitBtn.querySelector('span:first-child');
         if (btnText) btnText.textContent = 'Send Message';
       }
-      
-      // Show error status
       if (errorDiv) errorDiv.style.display = 'flex';
     });
   });
 }
+
+/* ---------- DevTools and Inspect Element Deterrents ---------- */
+// Disable Right-Click Context Menu
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+// Disable F12, Ctrl+Shift+I, Cmd+Alt+I (Inspect), Ctrl+Shift+J, etc.
+window.addEventListener('keydown', e => {
+  if (
+    // F12
+    e.key === 'F12' ||
+    // Ctrl+Shift+I (Windows/Linux) or Cmd+Alt+I (Mac)
+    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+    (e.metaKey && e.altKey && (e.key === 'i' || e.key === 'I')) ||
+    // Ctrl+Shift+J (Console Windows/Linux) or Cmd+Alt+J (Mac)
+    (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
+    (e.metaKey && e.altKey && (e.key === 'j' || e.key === 'J')) ||
+    // Ctrl+U (View Source Windows/Linux) or Cmd+Alt+U (Mac)
+    (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+    (e.metaKey && e.altKey && (e.key === 'u' || e.key === 'U')) ||
+    // Ctrl+Shift+C (Inspect Element Windows/Linux) or Cmd+Alt+C (Mac)
+    (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) ||
+    (e.metaKey && e.altKey && (e.key === 'c' || e.key === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
