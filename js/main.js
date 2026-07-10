@@ -152,7 +152,7 @@ try {
 }
 
 /* ---------- Spotlight mouse tracking for premium cards ---------- */
-document.querySelectorAll('.bento-card, .svc-card, .svc-mini, .proj, .stat-card').forEach(card => {
+document.querySelectorAll('.bento-card, .svc-card, .svc-mini, .proj, .stat-card, .pricing-banner').forEach(card => {
   card.addEventListener('mousemove', e => {
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;

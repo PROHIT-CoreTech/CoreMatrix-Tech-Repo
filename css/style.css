@@ -1652,6 +1652,42 @@ footer .social-links svg {
   margin-top: 60px;
 }
 
+/* Pricing Section & Banner */
+.pricing-banner {
+  background: linear-gradient(135deg, rgba(63, 213, 230, 0.08), var(--bg-card));
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 32px;
+  padding: 60px 40px;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pricing-banner:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 10px 40px rgba(63, 213, 230, 0.1), 0 0 30px rgba(139, 92, 246, 0.05);
+  transform: translateY(-4px);
+}
+
+.pricing-banner h2 {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  margin: 14px 0 16px;
+}
+
+.pricing-banner p {
+  color: var(--muted);
+  font-size: 16.5px;
+  max-width: 600px;
+  margin: 0 auto 32px;
+}
+
 /* Responsive adjustments */
 @media(max-width: 860px) {
   .navlinks {
