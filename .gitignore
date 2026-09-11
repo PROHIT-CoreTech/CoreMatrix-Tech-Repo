@@ -4,3 +4,9 @@ js/config.js
 
 # OS files
 .DS_Store
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
