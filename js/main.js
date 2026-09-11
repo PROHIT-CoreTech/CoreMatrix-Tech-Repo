@@ -194,28 +194,45 @@ const revealObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-/* ---------- Numbers Incrementer ---------- */
+/* ---------- Numbers Incrementer (Smooth Eased Counter) ---------- */
+function animateCounter(el) {
+  const targetVal = parseFloat(el.dataset.count) || 0;
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1600; // 1.6 seconds smooth count
+  const startTime = performance.now();
+
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = easeOutCubic(progress);
+    const currentVal = Math.floor(easedProgress * targetVal);
+
+    el.textContent = prefix + currentVal + suffix;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = prefix + targetVal + suffix;
+    }
+  }
+
+  el.textContent = prefix + '0' + suffix;
+  requestAnimationFrame(update);
+}
+
 const countObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if (!entry.isIntersecting) return;
-    const el = entry.target;
-    const targetVal = +el.dataset.count;
-    const suffix = el.dataset.suffix || '';
-    let currentVal = 0;
-    const step = Math.max(1, Math.ceil(targetVal / 35));
-    
-    const interval = setInterval(() => {
-      currentVal += step;
-      if (currentVal >= targetVal) {
-        currentVal = targetVal;
-        clearInterval(interval);
-      }
-      el.textContent = currentVal + suffix;
-    }, 30);
-    
-    countObserver.unobserve(el);
+    if (entry.isIntersecting) {
+      animateCounter(entry.target);
+      countObserver.unobserve(entry.target);
+    }
   });
-}, { threshold: 0.5 });
+}, { threshold: 0.25, rootMargin: '0px 0px -30px 0px' });
 
 document.querySelectorAll('[data-count]').forEach(el => countObserver.observe(el));
 
